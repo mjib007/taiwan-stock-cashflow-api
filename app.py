@@ -70,37 +70,40 @@ class CashFlowAnalyzer:
             return df
         
         df = df.copy()
-        df['date'] = pd.to_datetime(df['date'])
-        df['year'] = df['date'].dt.year
-        df['quarter'] = df['date'].dt.quarter
+        
+        # 確保 date 是 datetime 類型，但不重複設置 year 和 quarter
+        if 'date' not in df.columns:
+            return df
+        if not pd.api.types.is_datetime64_any_dtype(df['date']):
+            df['date'] = pd.to_datetime(df['date'])
         
         current_year = datetime.now().year
-        current_quarter = datetime.now().quarter
-        
         result_data = []
         
         # 處理過去5年的資料
         for year in range(current_year - 4, current_year + 1):
-            year_data = df[df['year'] == year]
+            # 使用 date 欄位來篩選年份，避免使用可能的 datetime quarter 屬性
+            year_mask = df['date'].dt.year == year
+            year_data = df[year_mask].copy()
             
             if year_data.empty:
                 print(f"Warning: No data for year {year}")
                 continue
             
+            # 添加臨時的 quarter 欄位
+            year_data.loc[:, 'temp_quarter'] = year_data['date'].dt.quarter
+            
             # 對於今年：使用到目前季度的最新累計資料
             if year == current_year:
-                # 找出今年目前可用的最高季度累計資料
-                available_quarters = sorted(year_data['quarter'].unique())
+                available_quarters = sorted(year_data['temp_quarter'].unique())
                 if available_quarters:
-                    # 使用今年最新的累計資料
                     latest_quarter = max(available_quarters)
-                    latest_data = year_data[year_data['quarter'] == latest_quarter].iloc[-1].copy()
+                    latest_data = year_data[year_data['temp_quarter'] == latest_quarter].iloc[-1]
                     
-                    # 建立新的記錄，避免修改原始的 pandas Series
                     new_record = {
                         'date': latest_data['date'],
                         'year': year,
-                        'quarter': f"累計至Q{latest_quarter}",  # 直接設定字串
+                        'quarter': f"累計至Q{latest_quarter}",  # 字串格式
                         'stock_code': latest_data.get('stock_code', ''),
                         'A': latest_data.get('A'),
                         'B': latest_data.get('B'), 
@@ -109,22 +112,20 @@ class CashFlowAnalyzer:
                         'E': latest_data.get('E')
                     }
                     
-                    # 檢查是否有有效的現金流資料
                     if any(pd.notna(new_record.get(c)) for c in ['A', 'B', 'C', 'D']):
                         print(f"Processing current year {year}: Using cumulative data up to Q{latest_quarter}")
                         result_data.append(new_record)
                         
             else:
                 # 對於過去年份：使用Q4的全年累計資料
-                q4_data = year_data[year_data['quarter'] == 4]
+                q4_data = year_data[year_data['temp_quarter'] == 4]
                 if not q4_data.empty:
                     q4_record = q4_data.iloc[-1]
                     
-                    # 建立新的記錄
                     new_record = {
                         'date': q4_record['date'],
                         'year': year,
-                        'quarter': "全年累計",  # 直接設定字串
+                        'quarter': "全年累計",  # 字串格式
                         'stock_code': q4_record.get('stock_code', ''),
                         'A': q4_record.get('A'),
                         'B': q4_record.get('B'),
@@ -133,22 +134,20 @@ class CashFlowAnalyzer:
                         'E': q4_record.get('E')
                     }
                     
-                    # 檢查是否有有效的現金流資料
                     if any(pd.notna(new_record.get(c)) for c in ['A', 'B', 'C', 'D']):
                         print(f"Processing past year {year}: Using Q4 annual cumulative data")
                         result_data.append(new_record)
                 else:
                     # 如果沒有Q4資料，嘗試使用最高季度的累計資料
-                    available_quarters = sorted(year_data['quarter'].unique())
+                    available_quarters = sorted(year_data['temp_quarter'].unique())
                     if available_quarters:
                         latest_quarter = max(available_quarters)
-                        latest_record = year_data[year_data['quarter'] == latest_quarter].iloc[-1]
+                        latest_record = year_data[year_data['temp_quarter'] == latest_quarter].iloc[-1]
                         
-                        # 建立新的記錄
                         new_record = {
                             'date': latest_record['date'],
                             'year': year,
-                            'quarter': f"累計至Q{latest_quarter}",  # 直接設定字串
+                            'quarter': f"累計至Q{latest_quarter}",  # 字串格式
                             'stock_code': latest_record.get('stock_code', ''),
                             'A': latest_record.get('A'),
                             'B': latest_record.get('B'),
