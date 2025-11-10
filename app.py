@@ -96,39 +96,70 @@ class CashFlowAnalyzer:
                     latest_quarter = max(available_quarters)
                     latest_data = year_data[year_data['quarter'] == latest_quarter].iloc[-1].copy()
                     
-                    # 更新標示為年度累計到目前季度
-                    latest_data['quarter'] = f"累計至Q{latest_quarter}"
-                    latest_data['year'] = year
+                    # 建立新的記錄，避免修改原始的 pandas Series
+                    new_record = {
+                        'date': latest_data['date'],
+                        'year': year,
+                        'quarter': f"累計至Q{latest_quarter}",  # 直接設定字串
+                        'stock_code': latest_data.get('stock_code', ''),
+                        'A': latest_data.get('A'),
+                        'B': latest_data.get('B'), 
+                        'C': latest_data.get('C'),
+                        'D': latest_data.get('D'),
+                        'E': latest_data.get('E')
+                    }
                     
                     # 檢查是否有有效的現金流資料
-                    if any(pd.notna(latest_data.get(c)) for c in ['A', 'B', 'C', 'D']):
+                    if any(pd.notna(new_record.get(c)) for c in ['A', 'B', 'C', 'D']):
                         print(f"Processing current year {year}: Using cumulative data up to Q{latest_quarter}")
-                        result_data.append(latest_data)
+                        result_data.append(new_record)
                         
             else:
                 # 對於過去年份：使用Q4的全年累計資料
                 q4_data = year_data[year_data['quarter'] == 4]
                 if not q4_data.empty:
-                    annual_data = q4_data.iloc[-1].copy()
-                    annual_data['quarter'] = "全年累計"
-                    annual_data['year'] = year
+                    q4_record = q4_data.iloc[-1]
+                    
+                    # 建立新的記錄
+                    new_record = {
+                        'date': q4_record['date'],
+                        'year': year,
+                        'quarter': "全年累計",  # 直接設定字串
+                        'stock_code': q4_record.get('stock_code', ''),
+                        'A': q4_record.get('A'),
+                        'B': q4_record.get('B'),
+                        'C': q4_record.get('C'), 
+                        'D': q4_record.get('D'),
+                        'E': q4_record.get('E')
+                    }
                     
                     # 檢查是否有有效的現金流資料
-                    if any(pd.notna(annual_data.get(c)) for c in ['A', 'B', 'C', 'D']):
+                    if any(pd.notna(new_record.get(c)) for c in ['A', 'B', 'C', 'D']):
                         print(f"Processing past year {year}: Using Q4 annual cumulative data")
-                        result_data.append(annual_data)
+                        result_data.append(new_record)
                 else:
                     # 如果沒有Q4資料，嘗試使用最高季度的累計資料
                     available_quarters = sorted(year_data['quarter'].unique())
                     if available_quarters:
                         latest_quarter = max(available_quarters)
-                        latest_data = year_data[year_data['quarter'] == latest_quarter].iloc[-1].copy()
-                        latest_data['quarter'] = f"累計至Q{latest_quarter}"
-                        latest_data['year'] = year
+                        latest_record = year_data[year_data['quarter'] == latest_quarter].iloc[-1]
                         
-                        if any(pd.notna(latest_data.get(c)) for c in ['A', 'B', 'C', 'D']):
+                        # 建立新的記錄
+                        new_record = {
+                            'date': latest_record['date'],
+                            'year': year,
+                            'quarter': f"累計至Q{latest_quarter}",  # 直接設定字串
+                            'stock_code': latest_record.get('stock_code', ''),
+                            'A': latest_record.get('A'),
+                            'B': latest_record.get('B'),
+                            'C': latest_record.get('C'),
+                            'D': latest_record.get('D'), 
+                            'E': latest_record.get('E')
+                        }
+                        
+                        if any(pd.notna(new_record.get(c)) for c in ['A', 'B', 'C', 'D']):
                             print(f"Processing past year {year}: Using cumulative data up to Q{latest_quarter} (Q4 not available)")
-                            result_data.append(latest_data)
+                            result_data.append(new_record)
         
         result_df = pd.DataFrame(result_data)
         if not result_df.empty:
@@ -173,7 +204,13 @@ class CashFlowAnalyzer:
         # Convert to analysis format
         processed_data = []
         for date, group in df.groupby('date'):
-            record = {'date': date, 'stock_code': stock_code}
+            date_obj = pd.to_datetime(date)  # 確保是 datetime 對象
+            record = {
+                'date': date_obj, 
+                'stock_code': stock_code,
+                'year': date_obj.year,  # 添加年份
+                'quarter': date_obj.quarter  # 添加季度
+            }
             
             for field, names in mapping.items():
                 value = None
@@ -188,7 +225,7 @@ class CashFlowAnalyzer:
         
         # Apply 6 analysis rules
         analysis_df = pd.DataFrame(processed_data)
-        analysis_df['date'] = pd.to_datetime(analysis_df['date'])
+        # date, year, quarter 已經在 processed_data 中正確設置
         analysis_df = analysis_df.sort_values('date')
         
         # Key: Convert to annual data
@@ -511,10 +548,17 @@ def get_raw_data(stock_code):
         # Convert back to output format
         simple_data = []
         for _, row in annual_df.iterrows():
+            # 確保 quarter 是字串格式
+            quarter_value = row['quarter']
+            if hasattr(quarter_value, 'quarter'):  # 如果是 datetime 對象
+                quarter_str = f"Q{quarter_value.quarter}"
+            else:
+                quarter_str = str(quarter_value)  # 直接轉為字串
+                
             record = {
-                'date': row['date'].strftime('%Y-%m-%d'),
-                'year': row['year'],
-                'quarter': row['quarter'],
+                'date': row['date'].strftime('%Y-%m-%d') if hasattr(row['date'], 'strftime') else str(row['date']),
+                'year': int(row['year']) if pd.notna(row['year']) else None,
+                'quarter': quarter_str,
                 'CashFlowsFromOperatingActivities': row['A'],
                 'CashProvidedByInvestingActivities': row['B'],
                 'CashFlowsProvidedFromFinancingActivities': row['C'],
