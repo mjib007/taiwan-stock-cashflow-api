@@ -570,7 +570,7 @@ def explore_data_structure(stock_code):
         df['quarter'] = df['date'].dt.quarter
         
         # 分析最近一年的資料
-        recent_year = df['year'].max()
+        recent_year = int(df['year'].max())  # 轉換為Python int
         recent_data = df[df['year'] == recent_year]
         
         analysis = {"year": recent_year, "quarters": {}}
@@ -586,30 +586,43 @@ def explore_data_structure(stock_code):
                     operating_cf = row['value']
                     break
             
-            analysis["quarters"][f"Q{quarter}"] = {
+            # 確保數值可以JSON序列化
+            operating_cf_display = f"{operating_cf/1e8:.1f}" if operating_cf else "無資料"
+            
+            analysis["quarters"][f"Q{int(quarter)}"] = {  # 轉換為Python int
                 "date": q_data['date'].iloc[0].strftime('%Y-%m-%d'),
-                "operating_cf": operating_cf,
-                "operating_cf_億": f"{operating_cf/1e8:.1f}" if operating_cf else "無資料"
+                "operating_cf": float(operating_cf) if operating_cf is not None else None,  # 轉換為Python float
+                "operating_cf_億": operating_cf_display
             }
             
             if operating_cf is not None:
-                operating_cf_values.append(operating_cf)
+                operating_cf_values.append(float(operating_cf))  # 轉換為Python float
         
         # 判斷資料性質
         if len(operating_cf_values) >= 2:
             is_increasing = all(operating_cf_values[i] >= operating_cf_values[i-1] for i in range(1, len(operating_cf_values)))
             analysis["data_assessment"] = {
-                "appears_cumulative": is_increasing,
+                "appears_cumulative": bool(is_increasing),  # 轉換為Python bool
                 "conclusion": "累計資料" if is_increasing else "季度差額資料",
-                "recommendation": "可以直接使用累計邏輯" if is_increasing else "需要將季度資料累加"
+                "recommendation": "可以直接使用累計邏輯" if is_increasing else "需要將季度資料累加",
+                "value_trend": "遞增趨勢" if is_increasing else "波動趨勢"
+            }
+        else:
+            analysis["data_assessment"] = {
+                "appears_cumulative": None,
+                "conclusion": "資料不足以判斷",
+                "recommendation": "需要更多季度資料來分析",
+                "value_trend": "資料不足"
             }
         
-        # 顯示可用欄位
-        analysis["available_types"] = sorted(df['type'].unique().tolist())
+        # 顯示可用欄位（限制數量避免回應過大）
+        analysis["available_types_sample"] = sorted(df['type'].unique().tolist())[:10]
+        analysis["total_types_count"] = int(len(df['type'].unique()))  # 轉換為Python int
         
         return jsonify({
             "success": True,
             "stock_code": stock_code,
+            "total_data_points": int(len(df)),  # 轉換為Python int
             "analysis": analysis,
             "timestamp": datetime.now().isoformat()
         })
