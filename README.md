@@ -1,5 +1,7 @@
 # 📊 Taiwan Stock Cashflow API (台股現金流自動化分析 API)
 
+![Profile views](https://komarev.com/ghpvc/?username=mjib007&label=Profile%20views&color=4c8eda&style=flat)
+
 這是一個基於 Python 與 Flask 打造的自動化台股現金流量分析工具。本專案旨在解決傳統財務分析中累積型數據不易判讀的問題，並將原始財報數據轉化為可操作的量化分析摘要。
 
 ## 🚀 專案亮點與核心功能
