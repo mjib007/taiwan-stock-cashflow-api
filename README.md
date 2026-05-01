@@ -1,5 +1,3 @@
-![Visitors](https://visitorbadge.io)
-
 # 📊 Taiwan Stock Cashflow API (台股現金流自動化分析 API)
 
 這是一個基於 Python 與 Flask 打造的自動化台股現金流量分析工具。本專案旨在解決傳統財務分析中累積型數據不易判讀的問題，並將原始財報數據轉化為可操作的量化分析摘要。
@@ -26,3 +24,10 @@
 
 ## 📄 開源授權
 本專案採用 **MIT License** 開源，歡迎學術交流與技術參考。
+
+## 🤝 Contributing
+Contributions, issues, and feature requests are welcome!  
+Feel free to open an issue or submit a Pull Request. Let's build the future of LegalTech together!
+
+---
+*“The future of law is written in code.”*
