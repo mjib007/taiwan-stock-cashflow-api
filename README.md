@@ -1,4 +1,4 @@
-![Views](https://komarev.com)
+![Visitors](https://visitorbadge.io)
 
 # 📊 Taiwan Stock Cashflow API (台股現金流自動化分析 API)
 
