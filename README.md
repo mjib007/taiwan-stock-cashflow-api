@@ -1,5 +1,5 @@
 # 📊 Taiwan Stock Cashflow API
-### 一位財經教學者，用 AI 工具自學打造的台股現金流自動化分析系統
+### 一位財經教學者，用 AI 工具自學打造的台股"現金流量表"自動化分析系統
 
 ![Profile views](https://komarev.com/ghpvc/?username=mjib007&label=Profile%20views&color=4c8eda&style=flat)
 ![Python](https://img.shields.io/badge/Python-3.9+-blue)
