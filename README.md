@@ -110,6 +110,12 @@ Q2 報表寫的不是 Q2 單季數字,而是 Q1+Q2 的累計值。
 工程師寫得出 API,但不一定知道「為什麼 |B|>A 在半導體業是合理的」。
 這個專案讓我體會到,**金融專業 + AI 工具 = 1+1 遠大於 2**。
 
+### 4. 自己也是使用者:從踩坑到改進
+我自己 clone 自己的專案到本地測試時,踩到了 pandas 安裝失敗的坑。
+這提醒我:**寫給自己用的程式 ≠ 寫給別人用的程式**。
+於是我把 `requirements.txt` 從鎖死版本(`pandas==2.1.1`)改為寬鬆版本(`pandas>=2.1.0`),
+讓任何環境都能順利安裝。詳見 [常見問題 Q1](#q1pip-install-時-pandas-安裝失敗出現-could-not-find-vswhereexe)。
+
 ---
 
 ## 🛠️ 在你自己的電腦上跑跑看
@@ -217,15 +223,25 @@ python app.py
 }
 ```
 
+> 💡 **小撇步**:JSON 看起來眼花繚亂?
+> 建議安裝瀏覽器擴充套件 **JSONView** 或 **JSON Formatter**,
+> 可以把 JSON 變成有縮排、有顏色、好閱讀的格式。
+
 ---
 
 ## ❓ 常見問題(FAQ)
 
 ### Q1:`pip install` 時 pandas 安裝失敗,出現 `Could not find vswhere.exe`?
 
-這是因為舊版 pandas 在某些 Python 環境下需要 C++ 編譯器。
-**解法**:確認你使用本專案最新版的 `requirements.txt`(已採用寬鬆版本標記如 `pandas>=2.1.0`),
-這樣 pip 會自動找一個已編譯好的版本,不需要你電腦自己編譯。
+這是我自己 clone 自己專案到本地測試時踩到的坑(笑)。
+
+**原因**:Windows 環境下,如果 `requirements.txt` 鎖死特定版本(例如 `pandas==2.1.1`),
+而該版本沒有預先編譯好的 wheel 檔,pip 會嘗試從原始碼編譯,需要 Visual Studio C++ 工具。
+
+**解法**:本專案的 `requirements.txt` 已從鎖死版本改為**寬鬆版本標記**(如 `pandas>=2.1.0`),
+讓 pip 自動找最新可用的預編譯版本,不需要本機編譯。
+
+如果你 clone 下來後還是遇到此問題,請確認你下載的是最新版的 `requirements.txt`。
 
 ### Q2:啟動時出現 `ModuleNotFoundError: No module named 'flask_cors'`?
 
@@ -247,11 +263,6 @@ pip install -r requirements.txt
 - 股票代號錯誤(例如打錯數字)
 - 該股票太新,FinMind 還沒收錄資料
 - FinMind API 暫時不穩(稍後重試即可)
-
-### Q5:JSON 看起來都是亂碼,怎麼閱讀?
-
-建議安裝瀏覽器擴充套件 **JSONView** 或 **JSON Formatter**,
-可以把 JSON 變成有縮排、有顏色、好閱讀的格式。
 
 ---
 
