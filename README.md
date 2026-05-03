@@ -2,6 +2,7 @@
 
 ### 一位財經教學者，用 AI 工具自學打造的台股「現金流量表」自動化分析系統
 
+![Profile views](https://komarev.com/ghpvc/?username=mjib007&label=Profile%20views&color=4c8eda&style=flat)
 [![Stars](https://img.shields.io/github/stars/mjib007/taiwan-stock-cashflow-api?style=flat&color=yellow)](https://github.com/mjib007/taiwan-stock-cashflow-api/stargazers)
 [![Forks](https://img.shields.io/github/forks/mjib007/taiwan-stock-cashflow-api?style=flat&color=blue)](https://github.com/mjib007/taiwan-stock-cashflow-api/network/members)
 ![Python](https://img.shields.io/badge/Python-3.9+-blue)
